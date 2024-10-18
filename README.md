@@ -105,8 +105,8 @@ The pipeline consists of several interconnected rules that handle different stag
 - [Minimap2](https://github.com/lh3/minimap2)
 - [Samtools](http://www.htslib.org/)
 - [Bedtools](https://bedtools.readthedocs.io/en/latest/)
-- [Spades]([https://cab.spbu.ru/software/spades/](https://github.com/ablab/spades))
-- [Swarm]([https://github.com/Belval/swam](https://github.com/torognes/swarm))
+- [Spades](https://github.com/ablab/spades) 
+- [Swarm](https://github.com/torognes/swarm)
 
 
 ## Workflow
