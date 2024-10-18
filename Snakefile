@@ -4,7 +4,7 @@ import snakemake.io
 import glob
 
 # Load config file
-configfile: "/mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/pipeline_4.2/test/config.yaml"
+configfile: "/mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/Pipeline_4/config.yaml"
 
 # Define folders
 INPUT = config["general"]["input_dir"]
