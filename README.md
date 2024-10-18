@@ -14,7 +14,6 @@ This pipeline is designed for processing sequencing data from Illumina and Nanop
 - [Config File](#config-file)
 - [Usage](#usage)
 - [Output](#output)
-- [License](#license)
 
 ## Pipeline Structure
 
