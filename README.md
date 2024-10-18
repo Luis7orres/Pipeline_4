@@ -25,7 +25,7 @@ flowchart TD
     A[Nanopore data] 
     B[Illumina paired-end data] 
 
-    demultiplex[Cutadapt<br><i>Demultiplexing</i>]:::color1
+    demultiplex[Cutadapt<br><i>Demultiplexing</i>]:::color3
     fastq1[fastq 1]
     fastq2[fastq 2]
     fastq3[fastq 3]
@@ -34,7 +34,7 @@ flowchart TD
     fastq5[fastq 5]
     fastq6[fastq 6]
 
-    QC[FastP<br><i>Quality Control</i>]:::color2
+    QC[FastP<br><i>Quality Control</i>]:::color3
     filtered_fastq[filtered_fastq]
     
     QC_HTML[HTML Report]
@@ -43,15 +43,19 @@ flowchart TD
     Chimera[VSearch<br><i>Chimera Deletion</i>]:::color3
     fastq_no_chimeras[fastq_no_chimeras]
 
-    Consensus[Minimap2<br><i>Consensus Preparation</i>]:::color4
+    Consensus[Minimap2<br><i>Consensus Preparation</i>]:::color3
     fastq_aligned_trimmed[fastq_aligned_trimmed]
     read_positions_bed[read_positions.bed]
 
     %% Define styles for colored nodes
-    classDef color1 fill:#ffcc00,stroke:#333,stroke-width:2px;
-    classDef color2 fill:#66ccff,stroke:#333,stroke-width:2px;
     classDef color3 fill:#ff6699,stroke:#333,stroke-width:2px;
-    classDef color4 fill:#99cc66,stroke:#333,stroke-width:2px;
+    classDef oval fill:#ff6699, stroke:#333, stroke-width:2px, rx:10px, ry:10px;
+
+    %% Define oval styles for all processes
+    class demultiplex oval;
+    class QC oval;
+    class Chimera oval;
+    class Consensus oval;
 
     %% Define links
     A --> demultiplex
