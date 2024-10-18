@@ -1,4 +1,4 @@
-# README: Pathogen Detection Pipeline
+# README: Pipeline_4
 
 ## Overview
 
@@ -96,11 +96,18 @@ The pipeline consists of several interconnected rules that handle different stag
 
 ## Requirements
 
-- Snakemake
-- Cutadapt
-- Fastp
-- VSEARCH
-- Access to Illumina and Nanopore sequencing data
+- [Python 3.12.6](https://www.python.org/downloads/release/python-3126/)
+- [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html)
+- [Cutadapt](https://cutadapt.readthedocs.io/en/stable/)
+- [Fastp](https://github.com/OpenGene/fastp)
+- [VSEARCH](https://github.com/torognes/vsearch)
+- [Minimap2](https://github.com/lh3/minimap2)
+- [Samtools](http://www.htslib.org/)
+- [Bedtools](https://bedtools.readthedocs.io/en/latest/)
+- [Spades]([https://cab.spbu.ru/software/spades/](https://github.com/ablab/spades))
+- [Swarm]([https://github.com/Belval/swam](https://github.com/torognes/swarm))
+
 
 ## Workflow
 
@@ -112,19 +119,37 @@ The workflow is divided into several stages, each implemented as a rule in the S
 
 - **Function**: Trim adapters from reads and demultiplex the data.
 - **Input**: Raw FASTQ files.
-- **Output**: Trimmed FASTQ files.
+- **Output**: Trimmed FASTQ files (fastq1, fastq2, fastq3).
+
+---
 
 ### 2. Fastp
 
 - **Function**: Perform quality control on the trimmed reads, including filtering based on quality scores and generating reports.
 - **Input**: Trimmed FASTQ files from Cutadapt.
-- **Output**: Filtered FASTQ files and quality reports (HTML and JSON).
+- **Output**: 
+  - Filtered FASTQ files (filtered_fastq).
+  - Quality reports (HTML and JSON).
+
+---
 
 ### 3. VSEARCH
 
 - **Function**: Detect chimeras in the filtered sequences and dereplicate them.
 - **Input**: Filtered FASTQ files from Fastp.
-- **Output**: Non-chimeric FASTQ files and dereplicated sequences.
+- **Output**: 
+  - Non-chimeric FASTQ files (fastq_no_chimeras).
+  - Dereplicated sequences.
+
+---
+
+### 4. Minimap2
+
+- **Function**: Align the non-chimeric reads and prepare for consensus generation.
+- **Input**: The fastq file with no chimeras.
+- **Output**: 
+  - Aligned FASTQ files (fastq_aligned_trimmed).
+  - Read position information (read_positions.bed).
 
 ## Configuration
 
