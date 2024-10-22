@@ -1,8 +1,8 @@
-# README: Pipeline_4
+# Pipeline_4
 
 ## Overview
 
-This pipeline is designed for processing sequencing data from Illumina and Nanopore platforms, specifically for pathogen detection using the **pathogen detection kit based on probes from Science and Business**. It provides a streamlined workflow for data demultiplexing, quality control, chimera detection, and dereplication of sequencing reads.
+This pipeline is designed for processing sequencing data from Illumina and Nanopore platforms, specifically for pathogen detection using the **pathogen detection kit based on probes from Science and Business**. It provides a streamlined workflow for data demultiplexing, quality control, chimera detection, and dereplication of sequencing reads (for now :D).
 
 ## Table of Contents
 
@@ -29,9 +29,10 @@ flowchart TD
     fastq2[fastq 2]
     fastq3[fastq 3]
 
-    fastq4[fastq 4]
-    fastq5[fastq 5]
-    fastq6[fastq 6]
+    fastq4_R1[fastq 4_R1]
+    fastq4_R2[fastq 4_R2]
+    fastq5_R1[fastq 5_R1]
+    fastq5_R2[fastq 5_R2]
 
     QC[FastP<br><i>Quality Control</i>]:::color3
     filtered_fastq[filtered_fastq]
@@ -62,16 +63,18 @@ flowchart TD
     demultiplex --> fastq2
     demultiplex --> fastq3
 
-    B --> fastq4
-    B --> fastq5
-    B --> fastq6
+    B --> fastq4_R1
+    B --> fastq4_R2
+    B --> fastq5_R1
+    B --> fastq5_R2
 
     fastq1 --> QC
     fastq2 --> QC
     fastq3 --> QC
-    fastq4 --> QC
-    fastq5 --> QC
-    fastq6 --> QC
+    fastq4_R1 --> QC
+    fastq4_R2 --> QC
+    fastq5_R1 --> QC
+    fastq5_R2 --> QC
 
     QC --> filtered_fastq
 
