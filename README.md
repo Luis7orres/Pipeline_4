@@ -169,4 +169,4 @@ snakemake --cores <number_of_cores>
 ```
 Replace <number_of_cores> with the desired number of processing threads.
 
-
+## THIS PIPELINE IS OPTIMIZED FOR FINISTERRAE III, WE PLAN TO CONTAINEREIZE IT WITH DOCKER TO ENSURE REPRODUCIBILITY ACROSS DIFFERENT ENVIROMENTS
