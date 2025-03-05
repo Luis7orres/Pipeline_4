@@ -6,7 +6,7 @@ general:
   results: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/test_pipeline4/results
 
 params:
-  seq: "single-end"
+  seq: "nanopore"
   win_size: 4
   mean_qual: 7
-  ref_database: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/Pipeline_4/scripts/7-quantification.sh
+  ref_database: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/sofia/Pipeline_4/test/kmer_db/kmers.fasta

@@ -19,7 +19,7 @@ module load fastp/0.22.0
 
 # FASTP FOR SINGLE END SEQUENCING
 
-if [ "$SEQUENCING" == "single-end" ]; then
+if [ "$SEQUENCING" == "nanopore" ]; then
     echo "Running fastp for single end sequencing"
 
     # Create report folder (if necessary)
@@ -35,7 +35,7 @@ if [ "$SEQUENCING" == "single-end" ]; then
 
     echo "FASTP analysis for single-end sequencing complete"
 
-elif [ "$SEQUENCING" == "paired-end" ]; then
+elif [ "$SEQUENCING" == "illumina" ]; then
     echo "Running fastp for paired-end sequencing"
 
     # Automatically derive R2 from R1 filename (replace _R1 with _R2)

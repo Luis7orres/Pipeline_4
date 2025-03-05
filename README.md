@@ -1,8 +1,8 @@
-# Pipeline_4
+# Pipeline_4: Sequence Processing & K-mer Analysis
 
 ## Overview
 
-This pipeline is designed for processing sequencing data from Illumina and Nanopore platforms, specifically for pathogen detection using the **pathogen detection kit based on probes from Science and Business**. It provides a streamlined workflow for data demultiplexing, quality control, chimera detection, and dereplication of sequencing reads (for now :D).
+A Snakemake pipeline for processing sequencing data, optimized for Nanopore reads and designed for pathogen detection using the **pathogen detection kit based on probes from Science and Business SL**. This updated pipeline incorporates demultiplexing and adapter trimming, quality filtering, chimera removal, and reference mapping to accurately identify pathogens. The final step generates count matrices for k-mer and bacterial profiling.
 
 ## Table of Contents
 
@@ -13,88 +13,62 @@ This pipeline is designed for processing sequencing data from Illumina and Nanop
 - [Configuration](#configuration)
 - [Config File](#config-file)
 - [Usage](#usage)
-- [Output](#output)
 
 ## Pipeline Structure
 
 
 ```mermaid
 flowchart TD
-    %% Define nodes
-    A[Nanopore data] 
-    B[Illumina paired-end data] 
+    A[Input FASTQ Files]
+    B[1.Demultiplexing & <br>Adapter Trimming<br><i>Cutadapt</i>]:::purple
+    B_out[Trimmed FASTQ:<br>sample_trimmed.fastq]
+    C[2.Quality Control & Filtering<br><i>Fastp</i>]:::purple
+    C_out[Filtered FASTQ:<br>sample_filt.fastq]
+    D[3.Chimera Removal<br><i>Vsearch</i>]:::purple
+    D_out[Chimera Removed FASTQ:<br>sample_chimera_del.fastq]
+    E[4.Reference Mapping<br><i>Minimap2</i>]:::purple
+    E_out[Mapping Report:<br>sample_mapping_report.tsv]:::green
+    F[5.Generate K-mer Count Matrix]:::purple
+    G[5.Generate Bacterial Count Matrix]:::purple
+    H[K-mer Counts Matrix:<br>kmer_counts_matrix.tsv]:::green
+    I[Bacteria Counts Matrix:<br>bacteria_counts_matrix.tsv]:::green
+    J[Pending:<br>Epi2Me Reporting]:::white
 
-    demultiplex[Cutadapt<br><i>Demultiplexing</i>]:::color3
-    fastq1[fastq 1]
-    fastq2[fastq 2]
-    fastq3[fastq 3]
+    A --> B
+    B --> B_out
+    B_out --> C
+    C --> C_out
+    C_out --> D
+    D --> D_out
+    D_out --> E
+    E --> E_out
+    E_out --> F
+    E_out --> G
+    F --> H
+    G --> I
+    E --> J
 
-    fastq4_R1[fastq 4_R1]
-    fastq4_R2[fastq 4_R2]
-    fastq5_R1[fastq 5_R1]
-    fastq5_R2[fastq 5_R2]
+    %% Define styles
+    classDef purple fill:#734f9a,stroke:#333,stroke-width:2px,rx:5px,ry:5px,color:#fff
+    classDef green fill:#3f6d4e,stroke:#333,stroke-width:2px,rx:5px,ry:5px,color:#fff
+    classDef white fill:#fff,stroke:#333,stroke-width:2px,rx:5px,ry:5px,color:#000
 
-    QC[FastP<br><i>Quality Control</i>]:::color3
-    filtered_fastq[filtered_fastq]
-    
-    QC_HTML[HTML Report]
-    QC_JSON[JSON Report]
-
-    Chimera[VSearch<br><i>Chimera Deletion</i>]:::color3
-    fastq_no_chimeras[fastq_no_chimeras]
-
-    Consensus[Minimap2<br><i>Consensus Preparation</i>]:::color3
-    fastq_aligned_trimmed[fastq_aligned_trimmed]
-    read_positions_bed[read_positions.bed]
-
-    %% Define styles for colored nodes
-    classDef color3 fill:#ff6699,stroke:#333,stroke-width:2px;
-    classDef oval fill:#ff6699, stroke:#333, stroke-width:2px, rx:10px, ry:10px;
-
-    %% Define oval styles for all processes
-    class demultiplex oval;
-    class QC oval;
-    class Chimera oval;
-    class Consensus oval;
-
-    %% Define links
-    A --> demultiplex
-    demultiplex --> fastq1
-    demultiplex --> fastq2
-    demultiplex --> fastq3
-
-    B --> fastq4_R1
-    B --> fastq4_R2
-    B --> fastq5_R1
-    B --> fastq5_R2
-
-    fastq1 --> QC
-    fastq2 --> QC
-    fastq3 --> QC
-    fastq4_R1 --> QC
-    fastq4_R2 --> QC
-    fastq5_R1 --> QC
-    fastq5_R2 --> QC
-
-    QC --> filtered_fastq
-
-    filtered_fastq --> Chimera
-    Chimera --> fastq_no_chimeras
-
-    fastq_no_chimeras --> Consensus
-    Consensus --> fastq_aligned_trimmed
-    Consensus --> read_positions_bed
-
-    %% Position the reports
-    QC --> QC_HTML
-    QC --> QC_JSON
+    %% Apply styles
+    class J white
+    class E_out,H,I green
+    class B,C,D,E,F,G purple
 ```
 
-The pipeline consists of several interconnected rules that handle different stages of the data processing workflow:
+The pipeline consists of interconnected rules that handle different stages of the data processing workflow:
 
 1. **Demultiplexing**: Using Cutadapt to trim and demultiplex the reads.
 2. **Quality Control and Filtering**: Applying Fastp for quality control, filtering, and report generation.
 3. **Chimera Detection and Dereplication**: Utilizing VSEARCH to detect chimeras and dereplicate sequences.
+4. **Reference Mapping**: Using Minimap2 to map processed reads against a reference database, generating alignment files (SAM/BAM/BED) and a mapping report.
+5. **Count Matrix Generation**: Generating two count matrices:
+- *K-mer Count Matrix*: Quantifying k-mer matches from the mapping results.
+- *Bacterial Count Matrix*: Tracking bacterial reference hits for taxonomic profiling.
+6. **Pending: Epi2Me Reporting**: Future integration of Epi2Me for generating comprehensive analysis reports (under development).
 
 ## Requirements
 
@@ -107,8 +81,7 @@ The pipeline consists of several interconnected rules that handle different stag
 - [Minimap2](https://github.com/lh3/minimap2)
 - [Samtools](http://www.htslib.org/)
 - [Bedtools](https://bedtools.readthedocs.io/en/latest/)
-- [Spades](https://github.com/ablab/spades) 
-- [Swarm](https://github.com/torognes/swarm)
+- [Epi2Me](https://github.com/epi2me-labs)
 
 
 ## Workflow
@@ -163,17 +136,17 @@ The configuration file requires the following structure to define input and outp
 
 ```bash
 general:
-  input_dir: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/test_pipeline4/data
-  output_dir: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/test_pipeline4/output
-  scripts_dir: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/Pipeline_4/scripts
-  logs_dir: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/test_pipeline4/logs
-  results: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/test_pipeline4/results
+  input_dir: /your/data/directoy
+  output_dir: /desired/output/directory
+  scripts_dir: /pipeline/scripts/directory
+  logs_dir: /desired/logs/directory
+  results: /desired/results/directory
 
 params:
   seq: "single-end"  # or "paired-end"
   win_size: 4
   mean_qual: 7
-  ref_database: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/Pipeline_4/database.db
+  ref_database: /pathogen/kmer/database
 ```
 ### Key Parameters
 
@@ -196,11 +169,4 @@ snakemake --cores <number_of_cores>
 ```
 Replace <number_of_cores> with the desired number of processing threads.
 
-## Output
 
-The processed files will be organized in the specified output directory. The structure includes directories for each processing step, with outputs named according to the sample identifiers.
-
-- **Cutadapt Output**: Trimmed FASTQ files located in the `cutadapt` directory.
-- **Fastp Output**: Filtered FASTQ files and associated reports (HTML and JSON) located in the `fastp` directory.
-- **VSEARCH Output**: Non-chimeric sequences and dereplicated sequences located in the `vsearch` directory.
-- ***TO BE CONTINUED***

@@ -1,23 +1,74 @@
 #!/bin/bash
+# filepath: /mnt/lustre/scratch/nlsas/home/uvi/bg/sbg/pipelines/Pipeline_4/scripts/4-mapping.sh
+
+# 1. Parse arguments
+if [ "$#" -ne 8 ]; then
+    echo "Usage: $0 <input_fastq> <output_sam> <output_bam> <output_bed> <output_fastq> <output_report> <seq_tech> <reference>"
+    exit 1
+fi
+
 INPUT=$1
-OUTPUT_MAPPING=$2
-SEQ_TECH=$3
+OUTPUT_SAM=$2
+OUTPUT_BAM=$3
+OUTPUT_BED=$4
+OUTPUT_FASTQ=$5
+OUTPUT_REPORT=$6
+SEQ_TECH=$7
+REFERENCE=$8
 
-if [ $SEQ_TECH == "nanopore" ];  then
-    minimap2 -ax sr "$INPUT" > aligned_reads.sam
+# 2. Load modules
+module load cesga/2020  
+module load gcccore/system
+module load k8/0.2.5
+module load minimap2/2.28
+module load htslib/1.19
+module load samtools/1.19
+module load bedtools/2.31.0
 
-#Mapear las lecturas contra la referencia (Illumina o Nanopore)
-minimap2 -ax sr reference.fasta reads.fastq > aligned_reads.sam
-minimap2 -ax sr reference.fasta reads_R1.fastq reads_R2.fastq > aligned_reads.sam
+# 3. Create directories for outputs
+mkdir -p "$(dirname "$OUTPUT_SAM")" "$(dirname "$OUTPUT_BAM")" "$(dirname "$OUTPUT_BED")" "$(dirname "$OUTPUT_FASTQ")" "$(dirname "$OUTPUT_REPORT")"
 
-#Convertir SAM a BAM y ordenar
-samtools view -bS aligned_reads.sam | samtools sort -o aligned_reads_sorted.bam
+# 4. Validate inputs
+if [ ! -s "$INPUT" ]; then
+    echo "Error: Input file empty or missing: $INPUT"
+    exit 1
+fi
 
-#Extraer las lecturas alineadas y las posiciones de mapeo
-samtools view aligned_reads_sorted.bam | awk '{print $1, $4, $9}' > read_positions.txt
+if [ ! -s "$REFERENCE" ]; then
+    echo "Error: Reference file empty or missing: $REFERENCE"
+    exit 1
+fi
 
-# Convertir read_positions.txt a archivo BED
-awk '{print $2 "\t" $3-1 "\t" $3 }' read_positions.txt > regions.bed
+# 5. Run minimap2 based on sequencing technology
+echo "Running Minimap2 for $SEQ_TECH sequencing"
+if [ "$SEQ_TECH" == "nanopore" ]; then
+    minimap2 -ax map-ont -k 15 -w 5 -A2 -B4 -O4,24 -E2,1 "$REFERENCE" "$INPUT" > "$OUTPUT_SAM"
+elif [ "$SEQ_TECH" == "illumina" ]; then
+    minimap2 -ax sr "$REFERENCE" "$INPUT" > "$OUTPUT_SAM"
+else
+    echo "Error: Unsupported sequencing technology: $SEQ_TECH"
+    exit 1
+fi
 
-#Generar un fastq con las lecturas mapeadas recortadas
-bedtools intersect -a aligned_reads_sorted.bam -b regions.bed | bedtools bamtofastq -i stdin -fq recortadas.fastq
+# 6. Process SAM/BAM files
+samtools view -S -b "$OUTPUT_SAM" | samtools sort -o "$OUTPUT_BAM"
+samtools index "$OUTPUT_BAM"
+
+# 7. Check for valid alignments
+if [ "$(samtools view -c "$OUTPUT_BAM")" -eq 0 ]; then
+    echo "Warning: No valid alignments found"
+    touch "$OUTPUT_BED" "$OUTPUT_FASTQ" "$OUTPUT_REPORT"
+    exit 0
+fi
+
+# 8. Generate outputs
+bedtools bamtobed -i "$OUTPUT_BAM" > "$OUTPUT_BED"
+samtools fastq "$OUTPUT_BAM" > "$OUTPUT_FASTQ"
+
+# 9. Generate TSV mapping report
+echo -e "ReadID\tReference\tMappingQuality" > "$OUTPUT_REPORT"
+samtools view "$OUTPUT_BAM" | awk 'BEGIN {FS="\t"; OFS="\t"} {print $1, $3, $5}' >> "$OUTPUT_REPORT"
+echo "Mapping report generated: $OUTPUT_REPORT"
+
+echo "Mapping completed successfully"
+exit 0
